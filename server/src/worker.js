@@ -347,7 +347,10 @@ export class Leaderboard {
 
 export default {
     async fetch(request, env) {
-        const id = env.LEADERBOARD.idFromName('global')
+        // ?room=... isolates state (e.g. room=test for e2e runs);
+        // production clients use the default room
+        const room = new URL(request.url).searchParams.get('room') ?? 'global'
+        const id = env.LEADERBOARD.idFromName(room.slice(0, 32))
         return env.LEADERBOARD.get(id).fetch(request)
     },
 }

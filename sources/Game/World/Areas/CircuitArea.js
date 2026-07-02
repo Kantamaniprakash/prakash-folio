@@ -10,6 +10,7 @@ import { alea } from 'seedrandom'
 import { InputFlag } from '../../InputFlag.js'
 import { Area } from './Area.js'
 import { timeToRaceString, timeToReadableString } from '../../utilities/time.js'
+import { GhostVehicle } from '../../GhostVehicle.js'
 
 export class CircuitArea extends Area
 {
@@ -53,6 +54,7 @@ export class CircuitArea extends Area
         this.setLeaderboard()
         this.setResetTime()
         this.setPodium()
+        this.setGhostReplay()
         this.setData()
         this.setAchievement()
 
@@ -1293,7 +1295,8 @@ export class CircuitArea extends Area
                     countryCode: this.menu.inputFlag.country ? this.menu.inputFlag.country.code : '',
                     tag: sanatized,
                     duration: Math.round(this.timer.elapsedTime * 1000),
-                    checkpointTimings: this.checkpoints.timings
+                    checkpointTimings: this.checkpoints.timings,
+                    trace: this.ghostReplay.recording
                 })
 
                 // Achievement
@@ -1464,6 +1467,104 @@ export class CircuitArea extends Area
         })
     }
 
+    setGhostReplay()
+    {
+        // Race the current record holder: their position trace (flat
+        // [t, x, y, z, ry] tuples) replays as a translucent car during laps
+        this.ghostReplay = {
+            bestLap: null,
+            vehicle: null,     // lazy — most visitors never race
+            cursor: 0,
+            recording: [],
+            lastRecordTime: 0,
+            lastPosition: new THREE.Vector3(),
+            heading: 0,
+            wasRunning: false,
+        }
+    }
+
+    updateGhostReplay()
+    {
+        const replay = this.ghostReplay
+        const running = this.timer.running
+
+        // Lap started
+        if(running && !replay.wasRunning)
+        {
+            replay.recording = []
+            replay.lastRecordTime = -1
+            replay.cursor = 0
+            replay.lastPosition.copy(this.game.player.position)
+
+            if(replay.bestLap?.trace?.length)
+            {
+                if(!replay.vehicle)
+                    replay.vehicle = new GhostVehicle('#e8641c', 0.35)
+                replay.vehicle.show()
+            }
+        }
+
+        // Lap ended
+        if(!running && replay.wasRunning)
+            replay.vehicle?.hide()
+
+        replay.wasRunning = running
+
+        if(!running)
+            return
+
+        const elapsed = this.timer.elapsedTime
+
+        // Record own trace at 10Hz (capped at 3 minutes)
+        if(elapsed - replay.lastRecordTime >= 0.1 && replay.recording.length < 9000)
+        {
+            replay.lastRecordTime = elapsed
+            const position = this.game.player.position
+            const dx = position.x - replay.lastPosition.x
+            const dz = position.z - replay.lastPosition.z
+            if(dx * dx + dz * dz > 0.0004)
+                replay.heading = Math.atan2(dx, dz)
+            replay.lastPosition.copy(position)
+
+            replay.recording.push(
+                Math.round(elapsed * 100) / 100,
+                Math.round(position.x * 100) / 100,
+                Math.round(position.y * 100) / 100,
+                Math.round(position.z * 100) / 100,
+                Math.round(replay.heading * 1000) / 1000
+            )
+        }
+
+        // Replay the best lap
+        const trace = replay.bestLap?.trace
+        if(!trace?.length || !replay.vehicle)
+            return
+
+        while(replay.cursor + 10 <= trace.length && trace[replay.cursor + 5] < elapsed)
+            replay.cursor += 5
+
+        const i = replay.cursor
+        if(i + 10 <= trace.length)
+        {
+            const t0 = trace[i], t1 = trace[i + 5]
+            const mixAmount = t1 > t0 ? Math.min(Math.max((elapsed - t0) / (t1 - t0), 0), 1) : 0
+            const group = replay.vehicle.group
+            group.position.set(
+                lerp(trace[i + 1], trace[i + 6], mixAmount),
+                lerp(trace[i + 2], trace[i + 7], mixAmount),
+                lerp(trace[i + 3], trace[i + 8], mixAmount)
+            )
+            let deltaRy = trace[i + 9] - trace[i + 4]
+            deltaRy = ((deltaRy + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI
+            group.rotation.y = trace[i + 4] + deltaRy * mixAmount
+        }
+        else if(elapsed > trace[trace.length - 5])
+        {
+            // Record holder finished — their ghost fades out
+            replay.vehicle.hide()
+        }
+    }
+
     setData()
     {
         // Server message event
@@ -1475,11 +1576,14 @@ export class CircuitArea extends Area
                 this.resetTime.activate(data.circuitResetTime)
                 this.leaderboard.update(data.circuitLeaderboard)
                 this.menu.updateLeaderboard(data.circuitLeaderboard)
+                this.ghostReplay.bestLap = data.bestLap ?? null
             }
             else if(data.type === 'circuitUpdate')
             {
                 this.leaderboard.update(data.circuitLeaderboard)
                 this.menu.updateLeaderboard(data.circuitLeaderboard)
+                if(data.bestLap)
+                    this.ghostReplay.bestLap = data.bestLap
             }
         })
 
@@ -1497,6 +1601,7 @@ export class CircuitArea extends Area
             this.resetTime.activate(this.game.server.initData.circuitResetTime)
             this.leaderboard.update(this.game.server.initData.circuitLeaderboard)
             this.menu.updateLeaderboard(this.game.server.initData.circuitLeaderboard)
+            this.ghostReplay.bestLap = this.game.server.initData.bestLap ?? null
         }
     }
 
@@ -1631,6 +1736,8 @@ export class CircuitArea extends Area
 
     update()
     {
+        this.updateGhostReplay()
+
         if(this.state === CircuitArea.STATE_RUNNING)
         {
             // Checkpoints
