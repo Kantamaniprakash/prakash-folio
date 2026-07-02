@@ -4,12 +4,17 @@ import sys
 from mathutils import Vector
 
 BLEND = 'C:/Users/praka/prakash-folio/resources/folio-2025.blend'
-FONT = 'C:/Users/praka/prakash-folio/static/fonts/Pally-Bold.ttf'
+# Archivo Black matches the original letters' glyph shapes (0.89 IoU vs 0.84
+# for Pally-Bold, measured against the original meshes) — see _match_font.py
+FONT = 'C:/Users/praka/prakash-folio/resources/ArchivoBlack-Regular.ttf'
 OUT = 'C:/Users/praka/prakash-folio/static/areas/areas.glb'
 RENDER_OUT = 'C:/Users/praka/prakash-folio/scripts/letters_preview.png'
 NAME = 'PRAKASH KANTAMANI'
-HEIGHT = 1.15          # letter height (original letters are 1.45)
-SPAN_EXTEND = 0.05     # extend the original letter row by 5% on each end
+SPAN_EXTEND = 0.10     # extend the original letter row by 10% on each end
+# Original letters: height = 1.04x their spacing, widths up to 1.08x spacing
+# (near-touching). Reproduce the same proportions at our tighter spacing.
+HEIGHT_RATIO = 1.04
+MAX_W_RATIO = 1.08
 
 bpy.ops.wm.open_mainfile(filepath=BLEND)
 
@@ -48,8 +53,9 @@ last = last + direction * SPAN_EXTEND
 
 slots = len(NAME)  # 17 (space at index 7)
 step_vec = (last - first) / (slots - 1)
-MAX_W = step_vec.length * 0.94
-print(f'span={(last - first).length:.2f} step={step_vec.length:.3f} max_w={MAX_W:.3f}')
+HEIGHT = step_vec.length * HEIGHT_RATIO
+MAX_W = step_vec.length * MAX_W_RATIO
+print(f'span={(last - first).length:.2f} step={step_vec.length:.3f} height={HEIGHT:.3f} max_w={MAX_W:.3f}')
 
 # ── Delete original letters (+ their collider children) ──────────
 for o in old:
@@ -81,9 +87,14 @@ for i, char in enumerate(NAME):
     obj.data.extrude = 0.1
     obj.data.align_x = 'CENTER'
     obj.data.align_y = 'CENTER'
-    obj.data.resolution_u = 3
+    obj.data.resolution_u = 2  # low-poly curves, like the original letters
     bpy.ops.object.convert(target='MESH')
     obj = bpy.context.active_object
+    # Original letters are smooth-shaded with hard edges from split normals
+    try:
+        bpy.ops.object.shade_auto_smooth(angle=math.radians(30))
+    except Exception:
+        bpy.ops.object.shade_smooth()
 
     # Stand it upright: glyph face +Z -> -Y (toward the game camera), up -> +Z.
     # Pure rotation keeps winding/normals correct — no mirroring.
