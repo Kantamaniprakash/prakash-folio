@@ -45,5 +45,12 @@ jobs:
         with:
           path: dist
 
+      # Pages deployment occasionally fails transiently ("try again later") —
+      # one in-run retry reuses the same uploaded artifact
       - id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      - id: deployment-retry
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4

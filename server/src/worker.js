@@ -98,15 +98,26 @@ export class Leaderboard {
         const pair = new WebSocketPair()
         this.state.acceptWebSocket(pair[1])
 
+        // Live players currently connected (multiplayer ghosts)
+        const players = []
+        for (const ws of this.state.getWebSockets()) {
+            try {
+                const att = ws.deserializeAttachment()
+                if (att?.id) players.push({ id: att.id, x: att.x, y: att.y, z: att.z, ry: att.ry })
+            } catch (_) { /* no attachment yet */ }
+        }
+
         const data = await this.readData()
         pair[1].send(encode({
             type: 'init',
             circuitResetTime: data.week,
             circuitLeaderboard: data.scores.map(s => [s.tag, s.country, s.duration]),
+            bestLap: data.bestLap ?? null,
             cataclysmCount: data.cataclysmCount,
             cataclysmProgress: (data.cataclysmCount % CATACLYSM_GOAL) / CATACLYSM_GOAL,
             whispers: data.whispers,
             cookiesCount: data.cookiesCount,
+            players,
         }))
 
         return new Response(null, { status: 101, webSocket: pair[0] })
@@ -141,7 +152,28 @@ export class Leaderboard {
         }
         if (!message || typeof message !== 'object') return
 
-        if (message.type === 'circuitInsert') {
+        if (message.type === 'playerUpdate') {
+            // Live position relay for multiplayer ghosts. Throttled server-side;
+            // latest position kept on the socket attachment (hibernation-safe)
+            // so new joiners get a snapshot in init.
+            const uuid = String(message.uuid ?? '')
+            const x = Number(message.x), y = Number(message.y), z = Number(message.z), ry = Number(message.ry)
+            if (!uuid || ![x, y, z, ry].every(Number.isFinite)) return
+            if (Math.abs(x) > 500 || Math.abs(y) > 100 || Math.abs(z) > 500) return
+
+            let att = {}
+            try { att = ws.deserializeAttachment() ?? {} } catch (_) {}
+            const now = Date.now()
+            if (att.lastAt && now - att.lastAt < 150) return
+            ws.serializeAttachment({ id: uuid, x, y, z, ry, lastAt: now })
+
+            const bytes = encode({ type: 'playerUpdate', id: uuid, x, y, z, ry })
+            for (const other of this.state.getWebSockets()) {
+                if (other === ws) continue
+                try { other.send(bytes) } catch (_) { /* stale */ }
+            }
+        }
+        else if (message.type === 'circuitInsert') {
             const tag = String(message.tag ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3)
             const country = String(message.countryCode ?? '').toLowerCase().slice(0, 2)
             const duration = Math.round(Number(message.duration))
@@ -164,11 +196,23 @@ export class Leaderboard {
 
             data.scores.sort((a, b) => a.duration - b.duration)
             data.scores = data.scores.slice(0, LEADERBOARD_SIZE)
+
+            // New fastest lap: keep its position trace for the ghost replay.
+            // Trace = flat [t, x, y, z, ry] tuples recorded by the client.
+            if (data.scores[0]?.uuid === uuid && duration === data.scores[0].duration) {
+                const trace = Array.isArray(message.trace) ? message.trace : []
+                const valid = trace.length > 0 && trace.length <= 9000 &&
+                    trace.length % 5 === 0 && trace.every(Number.isFinite)
+                if (valid)
+                    data.bestLap = { tag, duration, trace }
+            }
+
             await this.state.storage.put('data', data)
 
             this.broadcast({
                 type: 'circuitUpdate',
                 circuitLeaderboard: data.scores.map(s => [s.tag, s.country, s.duration]),
+                bestLap: data.bestLap ?? null,
             })
         }
         else if (message.type === 'whispersInsert') {
@@ -211,8 +255,19 @@ export class Leaderboard {
         }
     }
 
-    async webSocketClose() { /* nothing to clean up */ }
-    async webSocketError() { /* nothing to clean up */ }
+    webSocketClose(ws) { this.announceLeave(ws) }
+    webSocketError(ws) { this.announceLeave(ws) }
+
+    announceLeave(ws) {
+        let att = {}
+        try { att = ws.deserializeAttachment() ?? {} } catch (_) {}
+        if (!att.id) return
+        const bytes = encode({ type: 'playerLeave', id: att.id })
+        for (const other of this.state.getWebSockets()) {
+            if (other === ws) continue
+            try { other.send(bytes) } catch (_) { /* stale */ }
+        }
+    }
 
     // ── Analytics (counters only, no PII) ────────────────────────────
 

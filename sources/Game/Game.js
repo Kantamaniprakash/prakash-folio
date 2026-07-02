@@ -50,6 +50,7 @@ import gsap from 'gsap'
 import { Map } from './Map.js'
 import { Analytics } from './Analytics.js'
 import { AIGuide } from './AIGuide.js'
+import { Multiplayer } from './Multiplayer.js'
 
 export class Game
 {
@@ -193,6 +194,9 @@ export class Game
         this.RAPIER = RAPIER
         this.resources = { ...newResources, ...this.resources }
 
+        // Pristine copy for ghost cars — VisualVehicle consumes the original
+        this.resources.vehicleGhostTemplate = this.resources.vehicle.scene.clone(true)
+
         this.terrain = new Terrain()
         this.physics = new Physics()
         this.wireframe = new PhysicsWireframe()
@@ -208,6 +212,7 @@ export class Game
         this.title = new Title()
         // this.monitoring = new Monitoring()
         this.world.step(1)
+        this.multiplayer = new Multiplayer()
         this.overlay = new Overlay()
 
         // Pre-render if quality high
