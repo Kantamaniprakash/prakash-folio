@@ -43,7 +43,13 @@ export class Areas
             for(const [ name, AreaClass ] of list)
             {
                 if(child.name.startsWith(name))
+                {
                     this[name] = new AreaClass(child)
+                    this[name].events.on('boundingIn', () =>
+                    {
+                        this.game.analytics?.send('area_visit', name)
+                    })
+                }
             }
         }
 

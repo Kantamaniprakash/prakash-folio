@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kantamaniprakash.github.io/prakash-folio/sitemap.xml

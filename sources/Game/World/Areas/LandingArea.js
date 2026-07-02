@@ -16,6 +16,7 @@ export class LandingArea extends Area
 
         this.setLetters()
         this.setResume()
+        this.setAIGuide()
         this.setHiringToast()
         this.setKiosk()
         this.setControls()
@@ -40,11 +41,45 @@ export class LandingArea extends Area
                 10,
                 () =>
                 {
+                    this.game.analytics?.send('toast_click')
                     window.open('./Prakash_Kantamani_Resume.pdf', '_blank')
                 }
             )
         }
         gsap.delayedCall(45, show)
+    }
+
+    setAIGuide()
+    {
+        // Interactive point just past the end of the name
+        const letters = this.references.items.get('letters')
+        const lastLetter = letters[letters.length - 1]
+        const position = lastLetter.position.clone()
+        position.x += 1.5
+        position.y = 1.2
+
+        this.game.interactivePoints.create(
+            position,
+            'Ask my AI',
+            InteractivePoints.ALIGN_RIGHT,
+            InteractivePoints.STATE_CONCEALED,
+            () =>
+            {
+                this.game.aiGuide.open()
+            },
+            () =>
+            {
+                this.game.inputs.interactiveButtons.addItems(['interact'])
+            },
+            () =>
+            {
+                this.game.inputs.interactiveButtons.removeItems(['interact'])
+            },
+            () =>
+            {
+                this.game.inputs.interactiveButtons.removeItems(['interact'])
+            }
+        )
     }
 
     setResume()
@@ -62,6 +97,7 @@ export class LandingArea extends Area
             InteractivePoints.STATE_CONCEALED,
             () =>
             {
+                this.game.analytics?.send('resume_click')
                 window.open('./Prakash_Kantamani_Resume.pdf', '_blank')
             },
             () =>

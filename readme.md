@@ -1,5 +1,7 @@
 # Prakash's — Interactive 3D Portfolio
 
+[![Build, test & deploy](https://github.com/Kantamaniprakash/prakash-folio/actions/workflows/deploy.yml/badge.svg)](https://github.com/Kantamaniprakash/prakash-folio/actions/workflows/deploy.yml)
+
 ![Prakash's 3D Portfolio](./static/social/share-image.png)
 
 An interactive 3D driving experience — hop in the car, explore the island, knock things over, and discover the work of **Prakash Kantamani**, Data Scientist & Gen AI Engineer.

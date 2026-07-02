@@ -1615,6 +1615,7 @@ export class CircuitArea extends Area
                             this.endModal.instance.element.classList.remove('is-top-10')
                         
                         this.game.modals.open('circuit-end')
+                        this.game.analytics?.send('lap_complete', null, false)
                     })
                 }
 

@@ -48,6 +48,8 @@ import { PreRenderer } from './PreRenderer.js'
 import { Options } from './Options.js'
 import gsap from 'gsap'
 import { Map } from './Map.js'
+import { Analytics } from './Analytics.js'
+import { AIGuide } from './AIGuide.js'
 
 export class Game
 {
@@ -91,6 +93,8 @@ export class Game
         this.viewport = new Viewport(this.domElement)
         this.modals = new Modals()
         this.menu = new Menu()
+        this.analytics = new Analytics()
+        this.aiGuide = new AIGuide()
         this.rendering = new Rendering()
         await this.rendering.setRenderer()
 

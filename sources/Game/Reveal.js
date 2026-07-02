@@ -148,6 +148,8 @@ export class Reveal
         }
         else if(step === 1)
         {
+            this.game.analytics?.send('reveal_enter')
+
             // Audio
             this.game.audio.init()
             this.sound.play()
