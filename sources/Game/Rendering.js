@@ -64,8 +64,23 @@ export class Rendering
             this.renderer.inspector = new Inspector()
         }
 
-        // Make the renderer control the ticker
-        this.renderer.setAnimationLoop((elapsedTime) => { this.game.ticker.update(elapsedTime) })
+        // Make the renderer control the ticker.
+        // Capped at ~60fps: high-refresh displays (120/144/165Hz) would
+        // otherwise render 2x+ the frames for no visible benefit here, which
+        // doubles GPU load, fan noise and heat. The 3ms tolerance keeps the
+        // cadence even across refresh rates.
+        this.frameInterval = 1 / 60
+        this.lastFrameTime = 0
+        this.renderer.setAnimationLoop((elapsedTime) =>
+        {
+            const elapsedSeconds = elapsedTime / 1000
+
+            if(elapsedSeconds - this.lastFrameTime < this.frameInterval - 0.003)
+                return
+
+            this.lastFrameTime = Math.max(this.lastFrameTime + this.frameInterval, elapsedSeconds - this.frameInterval)
+            this.game.ticker.update(elapsedTime)
+        })
 
         return this.renderer
             .init()
