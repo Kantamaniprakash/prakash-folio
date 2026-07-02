@@ -1,0 +1,11 @@
+name = "prakash-folio-server"
+main = "src/worker.js"
+compatibility_date = "2026-06-01"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Leaderboard"]
+
+[[durable_objects.bindings]]
+name = "LEADERBOARD"
+class_name = "Leaderboard"

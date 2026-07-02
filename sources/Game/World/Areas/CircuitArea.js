@@ -1049,7 +1049,8 @@ export class CircuitArea extends Area
             this.resetTime.draw(null)
         }
 
-        const dayDuration = 24 * 60 * 60 * 1000
+        // Weekly reset to match the leaderboard server (server/src/worker.js)
+        const dayDuration = 7 * 24 * 60 * 60 * 1000
 
         this.resetTime.tryDraw = () =>
         {
