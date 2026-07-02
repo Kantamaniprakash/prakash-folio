@@ -1,16 +1,40 @@
 # Prakash's — Interactive 3D Portfolio
 
-![image info](./static/social/share-image.png)
+![Prakash's 3D Portfolio](./static/social/share-image.png)
 
-An interactive 3D driving experience — explore the island, knock things over, and discover the work of **Prakash Kantamani**, Data Scientist & Gen AI Engineer.
+An interactive 3D driving experience — hop in the car, explore the island, knock things over, and discover the work of **Prakash Kantamani**, Data Scientist & Gen AI Engineer.
 
-**Live:** [kantamaniprakash.github.io](https://kantamaniprakash.github.io)
+## 🔗 Live
 
-## Setup
+| | |
+|---|---|
+| 🎮 **3D Portfolio** | [kantamaniprakash.github.io/prakash-folio](https://kantamaniprakash.github.io/prakash-folio/) |
+| 💼 **Main Portfolio** | [kantamaniprakash.github.io](https://kantamaniprakash.github.io) |
+| 🐙 **GitHub** | [github.com/kantamaniprakash](https://github.com/kantamaniprakash) |
+| 💼 **LinkedIn** | [linkedin.com/in/prakash-kantamani](https://linkedin.com/in/prakash-kantamani) |
 
-Create `.env` file based on `.env.example`
+## ✨ Highlights
 
-Download and install [Node.js](https://nodejs.org/en/download/) then run this followed commands:
+- 🚗 Drivable physics vehicle with dynamic objects you can crash into
+- 🏝️ Fully explorable 3D island — projects, career, achievements, and more
+- 🌦️ Day/night cycles, seasons, and live weather (rain, snow, lightning, tornado!)
+- 🎳 Mini-games — bowling, a race circuit, hidden easter eggs
+- 🔊 Spatial audio and original music
+- ⚡ Runs on WebGPU (with WebGL fallback) at 60fps
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Rendering | [Three.js](https://threejs.org) (WebGPU / TSL node materials) |
+| Physics | [Rapier](https://rapier.rs) (WASM) |
+| Audio | [Howler.js](https://howlerjs.com) |
+| Tooling | [Vite](https://vitejs.dev), [Blender](https://www.blender.org) for all 3D assets |
+| Deploy | GitHub Pages |
+
+## 🚀 Getting Started
+
+Create a `.env` file based on `.env.example`, install [Node.js](https://nodejs.org/en/download/), then:
 
 ``` bash
 # Install dependencies
@@ -23,7 +47,10 @@ npm run dev
 npm run build
 ```
 
-## Game loop
+## 🎮 Engine Notes
+
+<details>
+<summary><strong>Game loop — tick order</strong></summary>
 
 #### 0
 
@@ -117,7 +144,10 @@ npm run build
 
 - Monitoring
 
-## Blender
+</details>
+
+<details>
+<summary><strong>Blender — export & compression pipeline</strong></summary>
 
 ### Export
 
@@ -153,3 +183,14 @@ Will do the following
 - https://gltf-transform.dev/cli
 - https://github.com/KhronosGroup/KTX-Software?tab=readme-ov-file
 - https://github.khronos.org/KTX-Software/ktxtools/toktx.html
+
+</details>
+
+## 📬 Contact
+
+**Prakash Kantamani** — Data Scientist & Gen AI Engineer
+📍 Richardson, TX · ✉️ [prakashkantamani90@gmail.com](mailto:prakashkantamani90@gmail.com)
+
+## 📄 License
+
+[MIT](./license.md)
