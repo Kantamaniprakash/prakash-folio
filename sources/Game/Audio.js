@@ -736,6 +736,12 @@ export class Audio
         {
             for(const item of group.items)
             {
+                // Unloaded (deferred) howls: skip — Howler queues rate/volume/
+                // mute calls on unloaded sounds, growing an internal queue
+                // every tick that overflows the stack when it finally drains
+                if(!item.loaded)
+                    continue
+
                 // Apply tick binding
                 if(typeof item.onPlaying === 'function')
                 {
