@@ -119,7 +119,8 @@ export class AchievementsArea extends Area
 
         // Particles
         {
-            const reference = this.references.items.get('waterfallParticles')[0]
+            const reference = this.references.items.get('waterfallParticles')?.[0]
+            if(!reference?.geometry) return
             reference.removeFromParent()
             
             const origin = new THREE.Vector3(
