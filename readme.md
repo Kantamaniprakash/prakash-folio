@@ -1,6 +1,10 @@
-# Folio 2025
+# Prakash's — Interactive 3D Portfolio
 
 ![image info](./static/social/share-image.png)
+
+An interactive 3D driving experience — explore the island, knock things over, and discover the work of **Prakash Kantamani**, Data Scientist & Gen AI Engineer.
+
+**Live:** [kantamaniprakash.github.io](https://kantamaniprakash.github.io)
 
 ## Setup
 
@@ -12,7 +16,7 @@ Download and install [Node.js](https://nodejs.org/en/download/) then run this fo
 # Install dependencies
 npm install --force
 
-# Serve at localhost:1234
+# Serve at localhost:5173
 npm run dev
 
 # Build for production in the dist/ directory
