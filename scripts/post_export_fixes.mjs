@@ -53,7 +53,31 @@ for (const c of ROOT_CUBOIDS) {
   console.log(c.name + ': restored at scene root')
 }
 
-// 3. Stray Cube.002
+// 3. Career timeline: bar positions/lengths encode years (1 road unit = 1
+//    year; the year counter reads 2017 at refYear z=7.43). The labels were
+//    re-textured for Prakash's career but the bars still had the original
+//    timeline. Start year = 2017 + (7.43 - z); duration = size.
+const YEAR_Z = 7.43
+const START_YEAR = 2017
+const CAREER = [
+  { name: 'refLine', start: 2017, size: 4, hasEnd: true },        // VIT B.Tech 2017-2021
+  { name: 'refLine.001', start: 2020, size: 2, hasEnd: true },    // Skilalogy Jan 2020-Dec 2021
+  { name: 'refLine.002', start: 2022.5, size: 2, hasEnd: true },  // UT Dallas MS Aug 2022-May 2024
+  { name: 'refLine.004', start: 2023.5, size: 0.5, hasEnd: true },// Imperium Data Aug-Dec 2023
+  { name: 'refLine.003', start: 2024.5, size: 2, hasEnd: false }, // AAA National Aug 2024-present
+  { name: 'refLine.005', start: 2023, size: 3.5, hasEnd: false }, // Gen AI skills banner, ongoing
+]
+for (const c of CAREER) {
+  const node = find(c.name)
+  if (!node) { console.log(c.name + ': NOT FOUND, skipped'); continue }
+  const t = node.getTranslation()
+  const z = +(YEAR_Z - (c.start - START_YEAR)).toFixed(3)
+  node.setTranslation([t[0], t[1], z])
+  node.setExtras({ ...node.getExtras(), size: c.size, hasEnd: c.hasEnd })
+  console.log(`${c.name}: ${c.start} -> +${c.size}yr (z=${z}, hasEnd=${c.hasEnd})`)
+}
+
+// 4. Stray Cube.002
 const stray = find('Cube.002')
 if (stray) {
   const mesh = stray.getMesh()
