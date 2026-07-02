@@ -14,6 +14,7 @@ export class Audio
         this.initiated = false
         this.groups = new Map()
         this.events = new Events()
+        this.deferred = []
 
         this.setMute()
 
@@ -21,6 +22,19 @@ export class Audio
         {
             this.update()
         }, 14)
+    }
+
+    preloadDeferred()
+    {
+        for(const item of this.deferred)
+        {
+            if(!item.loaded)
+            {
+                item.loaded = true
+                item.howl.load()
+            }
+        }
+        this.deferred = []
     }
 
     init()
@@ -78,7 +92,10 @@ export class Audio
             autoplay: (this.initiated && options.autoplay) ?? false,
             loop: options.loop ?? false,
             volume: options.volume ?? 0.5,
-            preload: options.preload ?? true,
+            // Deferred by default: ~2MB of effects were competing with the
+            // critical assets during the initial load. preloadDeferred() runs
+            // once the player enters the world; play() also lazy-loads.
+            preload: options.preload === true,
             onloaderror: () =>
             {
                 console.error(`Audio > Load error > ${options.path}`, options)
@@ -98,7 +115,9 @@ export class Audio
         item.lastPlay = -Infinity
         item.onPlaying = options.onPlaying ?? null
         item.onPlay = options.onPlay ?? null
-        item.loaded = options.preload ?? true
+        item.loaded = options.preload === true
+        if(options.preload === undefined)
+            this.deferred.push(item)
         item.autoplay = options.autoplay ?? false
         item.playing = (this.initiated && options.autoplay) ?? false
         item.id = group.items.length

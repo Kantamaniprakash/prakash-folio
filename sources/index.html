@@ -36,12 +36,13 @@
     <meta name="apple-mobile-web-app-title" content="Prakash's" />
     <link rel="manifest" href="/favicons/site.webmanifest" />
 
-    <!-- Must match what the game actually requests (draco models + png
-         textures + ?cb value), otherwise these download twice for nothing -->
+    <!-- Must match what the game actually requests (URL incl. ?cb AND request
+         mode: images load via <img> so as="image" without crossorigin, models
+         via fetch) — a mismatch makes the browser download the file twice -->
     <link rel="preload" href="/respawns/respawnsReferences-compressed.glb?cb=4" as="fetch" crossorigin>
-    <link rel="preload" href="/behindTheScene/stars.png?cb=4" as="fetch" crossorigin>
-    <link rel="preload" href="/intro/sound.png?cb=4" as="fetch" crossorigin>
-    <link rel="preload" href="/palette.png?cb=4" as="fetch" crossorigin>
+    <link rel="preload" href="/behindTheScene/stars.png?cb=4" as="image" crossorigin>
+    <link rel="preload" href="/intro/sound.png?cb=4" as="image" crossorigin>
+    <link rel="preload" href="/palette.png?cb=4" as="image" crossorigin>
     
     <!-- Structured data for search engines -->
     <script type="application/ld+json">

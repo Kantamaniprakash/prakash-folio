@@ -152,6 +152,7 @@ export class Reveal
 
             // Audio
             this.game.audio.init()
+            this.game.audio.preloadDeferred()
             this.sound.play()
 
             // Reveal
