@@ -8,8 +8,7 @@ An interactive 3D driving experience — hop in the car, explore the island, kno
 
 | | |
 |---|---|
-| 🎮 **3D Portfolio** | [kantamaniprakash.github.io/prakash-folio](https://kantamaniprakash.github.io/prakash-folio/) |
-| 💼 **Main Portfolio** | [kantamaniprakash.github.io](https://kantamaniprakash.github.io) |
+| 🎮 **Portfolio** | [kantamaniprakash.github.io/prakash-folio](https://kantamaniprakash.github.io/prakash-folio/) |
 | 🐙 **GitHub** | [github.com/kantamaniprakash](https://github.com/kantamaniprakash) |
 | 💼 **LinkedIn** | [linkedin.com/in/prakash-kantamani](https://linkedin.com/in/prakash-kantamani) |
 
