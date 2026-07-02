@@ -26,6 +26,11 @@ if (bundleMatch) {
     const bundle = readFileSync(join(DIST, bundleMatch[0]), 'utf8')
     check('bundle is non-trivial (>1MB)', bundle.length > 1_000_000)
     check('bundle wires the leaderboard server', bundle.includes('prakash-folio-server.kantamaniprakash.workers.dev'))
+    // Any VITE_ name still present means an env var was NOT baked in at build
+    // time (missing from .env.production) — runtime undefined, e.g. the NaN
+    // whisper-count crash. VITE_ANALYTICS_TAG-style leftovers included.
+    const leftover = bundle.match(/VITE_[A-Z_]+/g) ?? []
+    check(`no unreplaced VITE_ vars in bundle${leftover.length ? ` (found: ${[...new Set(leftover)].join(', ')})` : ''}`, leftover.length === 0)
 }
 
 // 3. Critical assets

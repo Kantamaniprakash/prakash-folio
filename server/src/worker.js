@@ -105,6 +105,8 @@ export class Leaderboard {
             circuitLeaderboard: data.scores.map(s => [s.tag, s.country, s.duration]),
             cataclysmCount: data.cataclysmCount,
             cataclysmProgress: (data.cataclysmCount % CATACLYSM_GOAL) / CATACLYSM_GOAL,
+            whispers: data.whispers,
+            cookiesCount: data.cookiesCount,
         }))
 
         return new Response(null, { status: 101, webSocket: pair[0] })
@@ -117,6 +119,9 @@ export class Leaderboard {
             data = { ...data, week: currentWeek, scores: [] }
             await this.state.storage.put('data', data)
         }
+        data.whispers = data.whispers ?? []
+        data.whisperId = data.whisperId ?? 0
+        data.cookiesCount = data.cookiesCount ?? 0
         return data
     }
 
@@ -165,6 +170,33 @@ export class Leaderboard {
                 type: 'circuitUpdate',
                 circuitLeaderboard: data.scores.map(s => [s.tag, s.country, s.duration]),
             })
+        }
+        else if (message.type === 'whispersInsert') {
+            const text = String(message.message ?? '').slice(0, 120).trim()
+            if (!text) return
+            const country = String(message.countryCode ?? '').toLowerCase().slice(0, 2)
+            const x = Number(message.x), y = Number(message.y), z = Number(message.z)
+            if (![x, y, z].every(Number.isFinite)) return
+
+            const data = await this.readData()
+            data.whisperId += 1
+            const whisper = { id: data.whisperId, message: text, countrycode: country, x, y, z }
+            data.whispers.push(whisper)
+
+            // Keep the newest MAX_WHISPERS, tell clients about evictions
+            const MAX_WHISPERS = 30
+            const removed = data.whispers.splice(0, Math.max(0, data.whispers.length - MAX_WHISPERS))
+            await this.state.storage.put('data', data)
+
+            this.broadcast({ type: 'whispersInsert', whispers: [whisper] })
+            if (removed.length)
+                this.broadcast({ type: 'whispersDelete', whispers: removed })
+        }
+        else if (message.type === 'cookiesInsert') {
+            const data = await this.readData()
+            data.cookiesCount += Math.min(Math.max(Math.round(Number(message.amount ?? 1)) || 1, 1), 100)
+            await this.state.storage.put('data', data)
+            this.broadcast({ type: 'cookiesUpdate', cookiesCount: data.cookiesCount })
         }
         else if (message.type === 'cataclysmInsert') {
             const data = await this.readData()
