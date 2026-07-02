@@ -36,6 +36,9 @@ jobs:
       - name: Smoke test
         run: node test/smoke.mjs
 
+      - name: Runtime E2E (boot world, no exceptions)
+        run: node test/e2e.mjs
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
