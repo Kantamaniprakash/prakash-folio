@@ -33,16 +33,21 @@ export class SocialArea extends Area
 
     setLinks()
     {
-        const radius = 6
-        let i = 0
-
         for(const link of socialData)
         {
-            const angle = i * Math.PI / (socialData.length - 1)
-            const position = this.center.clone()
-            position.x += Math.cos(angle) * radius
+            // Anchor each link to its icon monument (direct children of the
+            // area, renamed from "<icon>PhysicalDynamic" to "<icon>" and moved
+            // to world coordinates when objects are created)
+            const icon = this.objects.items.find(_object => _object.visual?.object3D.name === link.icon)
+
+            if(!icon)
+            {
+                console.warn(`SocialArea: no icon "${link.icon}" found for link "${link.name}"`)
+                continue
+            }
+
+            const position = icon.visual.object3D.position.clone()
             position.y = 1
-            position.z -= Math.sin(angle) * radius
 
             this.interactivePoint = this.game.interactivePoints.create(
                 position,
@@ -53,7 +58,7 @@ export class SocialArea extends Area
                 {
                     if(link.url)
                         window.open(link.url, '_blank')
-                    else(link.modal)
+                    else if(link.modal)
                         this.game.modals.open(link.modal)
                 },
                 () =>
@@ -69,8 +74,6 @@ export class SocialArea extends Area
                     this.game.inputs.interactiveButtons.removeItems(['interact'])
                 }
             )
-            
-            i++
         }
     }
 
