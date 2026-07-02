@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Analytics — Prakash Kantamani</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --surface: #1a1426;
+        --panel: #241d33;
+        --ink: #f0e8f8;
+        --ink-secondary: #b8a8d8;
+        --ink-muted: #8a7aa8;
+        --grid: rgba(255, 255, 255, 0.07);
+        --blue: #5390ff;
+        --orange: #e8641c;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+        background: var(--surface); color: var(--ink);
+        font-family: 'Nunito', system-ui, sans-serif;
+        padding: 2.5rem 1.5rem 4rem; line-height: 1.5;
+    }
+    .wrap { max-width: 960px; margin: 0 auto; }
+    h1 { font-size: 1.6rem; font-weight: 900; }
+    .sub { color: var(--ink-secondary); margin-bottom: 1.5rem; }
+    .sub a { color: var(--blue); text-decoration: none; }
+
+    .filters { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .filters button {
+        font: inherit; font-weight: 700; color: var(--ink-secondary);
+        background: var(--panel); border: 1px solid transparent; border-radius: 2em;
+        padding: 0.35em 1em; cursor: pointer;
+    }
+    .filters button.active { color: #fff; border-color: var(--blue); }
+
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .tile { background: var(--panel); border-radius: 12px; padding: 1.1rem 1.3rem; }
+    .tile .value { font-size: 2.1rem; font-weight: 900; line-height: 1.1; }
+    .tile .label { color: var(--ink-secondary); font-size: 0.85rem; }
+
+    .panel { background: var(--panel); border-radius: 12px; padding: 1.3rem 1.5rem 1.5rem; margin-bottom: 1.5rem; }
+    .panel h2 { font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .panel .note { color: var(--ink-muted); font-size: 0.8rem; margin-bottom: 1rem; }
+    svg { display: block; width: 100%; height: auto; }
+    svg text { font-family: 'Nunito', system-ui, sans-serif; }
+
+    #tooltip {
+        position: fixed; pointer-events: none; display: none; z-index: 10;
+        background: #0e0a18; color: var(--ink); border: 1px solid var(--grid);
+        border-radius: 8px; padding: 0.4em 0.7em; font-size: 0.85rem; white-space: nowrap;
+    }
+    details { color: var(--ink-secondary); font-size: 0.9rem; }
+    details table { border-collapse: collapse; margin-top: 0.75rem; width: 100%; }
+    details th, details td { text-align: left; padding: 0.3em 0.8em 0.3em 0; border-bottom: 1px solid var(--grid); }
+    footer { color: var(--ink-muted); font-size: 0.8rem; margin-top: 2rem; }
+    .empty { color: var(--ink-muted); padding: 1rem 0; }
+</style>
+</head>
+<body data-palette="#5390ff,#e8641c">
+<div class="wrap">
+    <h1>Portfolio Analytics</h1>
+    <p class="sub">Anonymous, self-hosted counters from <a href="https://kantamaniprakash.github.io/prakash-folio/">the 3D portfolio</a> — no cookies, no identifiers, Do&nbsp;Not&nbsp;Track respected.</p>
+
+    <div class="filters" id="filters">
+        <button data-days="7">7 days</button>
+        <button data-days="30" class="active">30 days</button>
+        <button data-days="90">90 days</button>
+    </div>
+
+    <div class="tiles" id="tiles"></div>
+
+    <div class="panel">
+        <h2>Visitor funnel</h2>
+        <p class="note">Of the sessions in this period, how far did people get?</p>
+        <div id="funnel"></div>
+    </div>
+
+    <div class="panel">
+        <h2>Sessions per day</h2>
+        <p class="note">Page loads of the portfolio, daily.</p>
+        <div id="daily"></div>
+    </div>
+
+    <div class="panel">
+        <h2>Most-visited areas</h2>
+        <p class="note">Which parts of the world people drove into.</p>
+        <div id="areas"></div>
+    </div>
+
+    <details id="tableView"><summary>Data table</summary></details>
+
+    <footer>Collected by a Cloudflare Worker (<code>/event</code> → counters only). Source in the <a style="color:var(--blue);text-decoration:none" href="https://github.com/Kantamaniprakash/prakash-folio">repo</a>.</footer>
+</div>
+<div id="tooltip"></div>
+
+<script>
+const STATS_URL = 'https://prakash-folio-server.kantamaniprakash.workers.dev/stats'
+const BLUE = '#5390ff'
+const INK = '#f0e8f8'
+const INK2 = '#b8a8d8'
+const GRID = 'rgba(255,255,255,0.07)'
+
+const AREA_LABELS = {
+    landing: 'Landing', projects: 'Projects', career: 'Career', circuit: 'Circuit',
+    social: 'Social plaza', lab: 'Lab', bowling: 'Bowling', achievements: 'Achievements',
+    altar: 'Altar', cookie: 'Cookie', toilet: 'Toilet', timemachine: 'Time machine',
+    behindthescene: 'Behind the scene',
+}
+
+const tooltip = document.getElementById('tooltip')
+const showTip = (event, html) => {
+    tooltip.innerHTML = html
+    tooltip.style.display = 'block'
+    tooltip.style.left = `${event.clientX + 14}px`
+    tooltip.style.top = `${event.clientY - 10}px`
+}
+const hideTip = () => { tooltip.style.display = 'none' }
+
+let raw = {}
+let days = 30
+
+const lastDays = (n) => {
+    const out = []
+    const now = new Date()
+    for (let i = n - 1; i >= 0; i--) {
+        const d = new Date(now)
+        d.setDate(now.getDate() - i)
+        out.push(d.toISOString().slice(0, 10))
+    }
+    return out
+}
+
+const aggregate = () => {
+    const range = lastDays(days)
+    const totals = {}
+    const perDay = []
+    for (const day of range) {
+        const events = raw[day] ?? {}
+        for (const [key, count] of Object.entries(events))
+            totals[key] = (totals[key] ?? 0) + count
+        perDay.push({ day, sessions: events.session_start ?? 0 })
+    }
+    return { totals, perDay }
+}
+
+const tile = (value, label) => `<div class="tile"><div class="value">${value.toLocaleString()}</div><div class="label">${label}</div></div>`
+
+const renderTiles = (totals) => {
+    document.getElementById('tiles').innerHTML =
+        tile(totals.session_start ?? 0, 'Sessions') +
+        tile(totals.reveal_enter ?? 0, 'Entered the world') +
+        tile((totals.resume_click ?? 0) + (totals.toast_click ?? 0), 'Resume downloads') +
+        tile(totals.ai_chat_open ?? 0, 'AI guide chats')
+}
+
+// Horizontal bars: shared renderer for funnel + areas (single-hue magnitude)
+const renderBars = (element, rows, tipLabel) => {
+    if (!rows.length || !rows[0].value) {
+        element.innerHTML = '<p class="empty">No data in this period yet.</p>'
+        return
+    }
+    const max = Math.max(...rows.map(r => r.value), 1)
+    const rowH = 34, labelW = 150, valueW = 130
+    const width = 900, barMax = width - labelW - valueW
+    const height = rows.length * rowH
+    let svg = `<svg viewBox="0 0 ${width} ${height}" role="img">`
+    rows.forEach((row, i) => {
+        const y = i * rowH
+        const w = Math.max(Math.round(row.value / max * barMax), row.value > 0 ? 6 : 0)
+        svg += `<text x="${labelW - 10}" y="${y + 21}" text-anchor="end" fill="${INK2}" font-size="14">${row.label}</text>`
+        svg += `<rect class="hover-bar" data-tip="${row.label}: ${row.value.toLocaleString()}${row.pct != null ? ` (${row.pct}% ${tipLabel})` : ''}"
+            x="${labelW}" y="${y + 6}" width="${w}" height="20" rx="4" fill="${BLUE}"
+            stroke="${getComputedStyle(document.body).getPropertyValue('--panel').trim()}" stroke-width="2"/>`
+        svg += `<text x="${labelW + w + 8}" y="${y + 21}" fill="${INK}" font-size="14" font-weight="700">${row.value.toLocaleString()}${row.pct != null ? ` <tspan fill="${INK2}" font-weight="400">· ${row.pct}%</tspan>` : ''}</text>`
+    })
+    svg += '</svg>'
+    element.innerHTML = svg
+}
+
+const renderFunnel = (totals) => {
+    const sessions = totals.session_start ?? 0
+    const stages = [
+        { label: 'Sessions', value: sessions },
+        { label: 'Entered the world', value: totals.reveal_enter ?? 0 },
+        { label: 'Explored an area', value: Object.entries(totals).filter(([k]) => k.startsWith('area_visit:') && !k.endsWith(':landing')).reduce((max, [, v]) => Math.max(max, v), 0) },
+        { label: 'Downloaded resume', value: (totals.resume_click ?? 0) + (totals.toast_click ?? 0) },
+    ]
+    stages.forEach(s => { s.pct = sessions ? Math.round(s.value / sessions * 100) : null })
+    renderBars(document.getElementById('funnel'), stages, 'of sessions')
+}
+
+const renderAreas = (totals) => {
+    const rows = Object.entries(totals)
+        .filter(([key]) => key.startsWith('area_visit:'))
+        .map(([key, value]) => ({ label: AREA_LABELS[key.split(':')[1]] ?? key.split(':')[1], value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 10)
+    renderBars(document.getElementById('areas'), rows, 'of area visits')
+}
+
+const renderDaily = (perDay) => {
+    const element = document.getElementById('daily')
+    const max = Math.max(...perDay.map(d => d.sessions), 1)
+    const width = 900, height = 220, padL = 40, padB = 28, padT = 12
+    const plotW = width - padL - 10, plotH = height - padT - padB
+    const x = (i) => padL + (perDay.length === 1 ? plotW / 2 : i / (perDay.length - 1) * plotW)
+    const y = (v) => padT + plotH - (v / max * plotH)
+
+    let svg = `<svg viewBox="0 0 ${width} ${height}" role="img">`
+    // recessive grid: 3 horizontal lines + y labels
+    for (const frac of [0, 0.5, 1]) {
+        const value = Math.round(max * frac)
+        svg += `<line x1="${padL}" y1="${y(value)}" x2="${width - 10}" y2="${y(value)}" stroke="${GRID}"/>`
+        svg += `<text x="${padL - 8}" y="${y(value) + 4}" text-anchor="end" fill="${INK2}" font-size="12">${value}</text>`
+    }
+    // x labels: first, middle, last
+    const ticks = perDay.length > 2 ? [0, Math.floor(perDay.length / 2), perDay.length - 1] : perDay.map((_, i) => i)
+    for (const i of ticks) {
+        const anchor = i === 0 ? 'start' : (i === perDay.length - 1 ? 'end' : 'middle')
+        svg += `<text x="${x(i)}" y="${height - 8}" text-anchor="${anchor}" fill="${INK2}" font-size="12">${perDay[i].day.slice(5)}</text>`
+    }
+    // line
+    const path = perDay.map((d, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(d.sessions).toFixed(1)}`).join(' ')
+    svg += `<path d="${path}" fill="none" stroke="${BLUE}" stroke-width="2" stroke-linejoin="round"/>`
+    // hover targets (full-height columns) + visible points on non-zero days
+    perDay.forEach((d, i) => {
+        if (d.sessions > 0)
+            svg += `<circle cx="${x(i)}" cy="${y(d.sessions)}" r="4" fill="${BLUE}"/>`
+        const cellW = plotW / Math.max(perDay.length - 1, 1)
+        svg += `<rect class="hover-bar" data-tip="${d.day}: ${d.sessions.toLocaleString()} session${d.sessions === 1 ? '' : 's'}"
+            x="${x(i) - cellW / 2}" y="0" width="${cellW}" height="${height}" fill="transparent"/>`
+    })
+    svg += '</svg>'
+    element.innerHTML = svg
+}
+
+const renderTable = (totals) => {
+    const rows = Object.entries(totals).sort((a, b) => b[1] - a[1])
+        .map(([key, value]) => `<tr><td>${key}</td><td>${value.toLocaleString()}</td></tr>`).join('')
+    document.getElementById('tableView').innerHTML =
+        `<summary>Data table</summary><table><tr><th>Event</th><th>Count (${days}d)</th></tr>${rows || '<tr><td colspan="2">No data</td></tr>'}</table>`
+}
+
+const render = () => {
+    const { totals, perDay } = aggregate()
+    renderTiles(totals)
+    renderFunnel(totals)
+    renderDaily(perDay)
+    renderAreas(totals)
+    renderTable(totals)
+}
+
+document.getElementById('filters').addEventListener('click', (event) => {
+    const button = event.target.closest('button')
+    if (!button) return
+    days = parseInt(button.dataset.days)
+    document.querySelectorAll('#filters button').forEach(b => b.classList.toggle('active', b === button))
+    render()
+})
+
+document.body.addEventListener('mousemove', (event) => {
+    const target = event.target.closest?.('.hover-bar')
+    if (target) showTip(event, target.dataset.tip)
+    else hideTip()
+})
+
+fetch(STATS_URL)
+    .then(r => r.json())
+    .then(data => { raw = data; render() })
+    .catch(() => { document.getElementById('tiles').innerHTML = '<p class="empty">Could not load stats — try again shortly.</p>' })
+</script>
+</body>
+</html>
