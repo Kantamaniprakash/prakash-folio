@@ -90,3 +90,26 @@ if (stray) {
 
 await io.write(GLB, doc)
 console.log('wrote', GLB)
+
+// 5. Regenerate the draco variant served in production (VITE_COMPRESSED_MODELS)
+const { draco } = await import('@gltf-transform/functions')
+const draco3d = await import('draco3dgltf')
+const ioDraco = new NodeIO()
+  .registerExtensions(ALL_EXTENSIONS)
+  .registerDependencies({
+    'draco3d.encoder': await draco3d.createEncoderModule(),
+    'draco3d.decoder': await draco3d.createDecoderModule(),
+  })
+const docDraco = await ioDraco.read(GLB)
+await docDraco.transform(draco({
+  method: 'edgebreaker',
+  quantizationVolume: 'mesh',
+  quantizePosition: 12,
+  quantizeNormal: 6,
+  quantizeTexcoord: 6,
+  quantizeColor: 2,
+  quantizeGeneric: 2,
+}))
+const COMPRESSED = GLB.replace('.glb', '-compressed.glb')
+await ioDraco.write(COMPRESSED, docDraco)
+console.log('wrote', COMPRESSED)

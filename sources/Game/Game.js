@@ -94,8 +94,13 @@ export class Game
         this.rendering = new Rendering()
         await this.rendering.setRenderer()
 
+        // Models and textures compress independently: VITE_COMPRESSED enables
+        // both, VITE_COMPRESSED_MODELS only draco models (the .ktx textures in
+        // static/ are stale for the customized labels — regenerate them with
+        // toktx before enabling full compression)
         const compressed = !!import.meta.env.VITE_COMPRESSED
-        const compressedModelSuffix = compressed ? '-compressed' : ''
+        const compressedModels = compressed || !!import.meta.env.VITE_COMPRESSED_MODELS
+        const compressedModelSuffix = compressedModels ? '-compressed' : ''
         const compressedTextureFormat = compressed ? 'textureKtx' : 'texture'
         const compressedTextureExtension = compressed ? 'ktx' : 'png'
 

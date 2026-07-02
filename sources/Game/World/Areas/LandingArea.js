@@ -25,8 +25,25 @@ export class LandingArea extends Area
     {
         const references = this.references.items.get('letters')
 
+        // The name is signage: skip the core/drop shadow system (which turns
+        // it near-black under the trees at midday) and shade the form gently
+        // instead — lit faces at 100%, shaded faces never below 75%. It still
+        // follows the day/night lighting tint.
+        const letterShading = normalWorld
+            .dot(this.game.lighting.directionUniform)
+            .clamp(0, 1)
+            .mul(0.25)
+            .add(0.75)
+        const material = new MeshDefaultMaterial({
+            colorNode: texture(this.game.resources.paletteTexture).rgb.mul(letterShading),
+            hasCoreShadows: false,
+            hasDropShadows: false,
+        })
+
         for(const reference of references)
         {
+            reference.material = material
+
             const physical = reference.userData.object.physical
             physical.colliders[0].setActiveEvents(this.game.RAPIER.ActiveEvents.CONTACT_FORCE_EVENTS)
             physical.colliders[0].setContactForceEventThreshold(5)

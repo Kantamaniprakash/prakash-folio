@@ -36,10 +36,12 @@
     <meta name="apple-mobile-web-app-title" content="Prakash's" />
     <link rel="manifest" href="/favicons/site.webmanifest" />
 
-    <link rel="preload" href="/respawns/respawnsReferences-compressed.glb" as="fetch" crossorigin>
-    <link rel="preload" href="/behindTheScene/stars.ktx" as="fetch" crossorigin>
-    <link rel="preload" href="/intro/sound.ktx" as="fetch" crossorigin>
-    <link rel="preload" href="/palette.ktx" as="fetch" crossorigin>
+    <!-- Must match what the game actually requests (draco models + png
+         textures + ?cb value), otherwise these download twice for nothing -->
+    <link rel="preload" href="/respawns/respawnsReferences-compressed.glb?cb=2" as="fetch" crossorigin>
+    <link rel="preload" href="/behindTheScene/stars.png?cb=2" as="fetch" crossorigin>
+    <link rel="preload" href="/intro/sound.png?cb=2" as="fetch" crossorigin>
+    <link rel="preload" href="/palette.png?cb=2" as="fetch" crossorigin>
     
     <!-- Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-JMSN30BQ5J"></script>
