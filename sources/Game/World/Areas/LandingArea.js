@@ -15,35 +15,76 @@ export class LandingArea extends Area
         this.localTime = uniform(0)
 
         this.setLetters()
+        this.setResume()
+        this.setHiringToast()
         this.setKiosk()
         this.setControls()
         this.setBonfire()
         this.setAchievement()
     }
 
+    setHiringToast()
+    {
+        // One friendly nudge per visit, once the player has been exploring
+        const show = () =>
+        {
+            if(!this.game.reveal || this.game.reveal.step < 2)
+            {
+                gsap.delayedCall(15, show)
+                return
+            }
+
+            this.game.notifications.show(
+                'Open to Gen AI & Data Science roles — click to grab my resume',
+                '',
+                10,
+                () =>
+                {
+                    window.open('./Prakash_Kantamani_Resume.pdf', '_blank')
+                }
+            )
+        }
+        gsap.delayedCall(45, show)
+    }
+
+    setResume()
+    {
+        // Interactive point just before the name starts
+        const firstLetter = this.references.items.get('letters')[0]
+        const position = firstLetter.position.clone()
+        position.x -= 1.5
+        position.y = 1.2
+
+        this.game.interactivePoints.create(
+            position,
+            'Resume',
+            InteractivePoints.ALIGN_LEFT,
+            InteractivePoints.STATE_CONCEALED,
+            () =>
+            {
+                window.open('./Prakash_Kantamani_Resume.pdf', '_blank')
+            },
+            () =>
+            {
+                this.game.inputs.interactiveButtons.addItems(['interact'])
+            },
+            () =>
+            {
+                this.game.inputs.interactiveButtons.removeItems(['interact'])
+            },
+            () =>
+            {
+                this.game.inputs.interactiveButtons.removeItems(['interact'])
+            }
+        )
+    }
+
     setLetters()
     {
         const references = this.references.items.get('letters')
 
-        // The name is signage: skip the core/drop shadow system (which turns
-        // it near-black under the trees at midday) and shade the form gently
-        // instead — lit faces at 100%, shaded faces never below 75%. It still
-        // follows the day/night lighting tint.
-        const letterShading = normalWorld
-            .dot(this.game.lighting.directionUniform)
-            .clamp(0, 1)
-            .mul(0.25)
-            .add(0.75)
-        const material = new MeshDefaultMaterial({
-            colorNode: texture(this.game.resources.paletteTexture).rgb.mul(letterShading),
-            hasCoreShadows: false,
-            hasDropShadows: false,
-        })
-
         for(const reference of references)
         {
-            reference.material = material
-
             const physical = reference.userData.object.physical
             physical.colliders[0].setActiveEvents(this.game.RAPIER.ActiveEvents.CONTACT_FORCE_EVENTS)
             physical.colliders[0].setContactForceEventThreshold(5)

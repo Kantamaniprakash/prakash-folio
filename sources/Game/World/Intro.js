@@ -148,13 +148,19 @@ export class Intro
             let cachedTexture = this.text.textures.get(name)
             if(!cachedTexture)
             {
-                const loader = this.game.resourcesLoader.getLoader('textureKtx')
-                
-                const resourcePath = `intro/${name}Label.ktx`
+                // Follow the texture compression mode like every other
+                // texture (the .ktx variants are stale for customized labels)
+                const compressed = !!import.meta.env.VITE_COMPRESSED
+                const loader = this.game.resourcesLoader.getLoader(compressed ? 'textureKtx' : 'texture')
+
+                const resourcePath = `intro/${name}Label.${compressed ? 'ktx' : 'png'}?cb=3`
                 loader.load(
                     resourcePath,
                     (loadedTexture) =>
                     {
+                        // The shader already flips Y (ktx orientation) — keep
+                        // png textures unflipped so it isn't flipped twice
+                        loadedTexture.flipY = false
                         this.text.textures.set(name, loadedTexture)
 
                         // Update material and mesh

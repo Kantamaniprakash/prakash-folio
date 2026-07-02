@@ -50,4 +50,21 @@ export default [
             'ml-scale-3.ktx',
         ]
     },
+    {
+        title: 'Bitcoin Forecasting',
+        titleSmall: [ 'Bitcoin', 'Forecasting' ],
+        url: 'https://github.com/kantamaniprakash/Bitcoin-Price-Forecasting',
+        attributes:
+        {
+            role: [ 'Data Scientist' ],
+            with: [ 'ARIMA', 'VAR', 'Granger causality' ]
+        },
+        distinctions: [],
+        images:
+        [
+            'bitcoin-forecast-1.ktx',
+            'bitcoin-forecast-2.ktx',
+            'bitcoin-forecast-3.ktx',
+        ]
+    },
 ]
