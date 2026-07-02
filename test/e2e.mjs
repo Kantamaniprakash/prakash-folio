@@ -26,10 +26,14 @@ process.on('exit', kill)
 const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { shell: true, stdio: 'ignore' })
 cleanup.push(server)
 
-// Launch chrome
+// Launch chrome — real GPU where available, SwiftShader software GL on
+// GPU-less CI runners (modern Chrome requires the explicit unsafe opt-in)
+const gpuFlags = process.platform === 'win32'
+    ? ['--enable-unsafe-webgpu', '--enable-gpu']
+    : ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader']
 const browser = spawn(chrome, [
     '--headless=new', `--remote-debugging-port=${CDP_PORT}`, '--window-size=1400,800',
-    '--no-sandbox', '--disable-dev-shm-usage', '--enable-unsafe-webgpu', '--enable-gpu',
+    '--no-sandbox', '--disable-dev-shm-usage', ...gpuFlags,
     '--user-data-dir=' + (process.platform === 'win32' ? process.env.TEMP : '/tmp') + '/e2e-chrome-profile',
     '--no-first-run', 'about:blank',
 ], { stdio: 'ignore' })
