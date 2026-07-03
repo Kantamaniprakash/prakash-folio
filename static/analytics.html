@@ -268,10 +268,29 @@ document.body.addEventListener('mousemove', (event) => {
     else hideTip()
 })
 
-fetch(STATS_URL)
-    .then(r => r.json())
-    .then(data => { raw = data; render() })
-    .catch(() => { document.getElementById('tiles').innerHTML = '<p class="empty">Could not load stats — try again shortly.</p>' })
+const loadStats = () => {
+    let key = localStorage.getItem('statsKey')
+    if (!key) {
+        key = (prompt('This dashboard is private. Enter the access key:') ?? '').trim()
+        if (!key) {
+            document.getElementById('tiles').innerHTML = '<p class="empty">This dashboard is private — reload to enter the access key.</p>'
+            return
+        }
+        localStorage.setItem('statsKey', key)
+    }
+    fetch(`${STATS_URL}?key=${encodeURIComponent(key)}`)
+        .then(r => {
+            if (r.status === 403) { localStorage.removeItem('statsKey'); throw new Error('forbidden') }
+            return r.json()
+        })
+        .then(data => { raw = data; render() })
+        .catch(err => {
+            document.getElementById('tiles').innerHTML = err.message === 'forbidden'
+                ? '<p class="empty">Wrong key — reload to try again.</p>'
+                : '<p class="empty">Could not load stats — try again shortly.</p>'
+        })
+}
+loadStats()
 </script>
 </body>
 </html>

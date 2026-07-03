@@ -2,7 +2,7 @@
 //
 //   WS  /            msgpack-over-WebSocket game protocol (leaderboard + altar)
 //   POST /event      self-hosted analytics beacon (counters only, no PII)
-//   GET  /stats      aggregated analytics, public JSON
+//   GET  /stats      aggregated analytics, owner-only (?key= must match the STATS_KEY secret)
 //   POST /chat       AI guide grounded in Prakash's profile (Workers AI)
 //
 // One Durable Object instance holds all state and connected sockets.
@@ -244,6 +244,9 @@ export class Leaderboard {
     }
 
     async handleStats(request) {
+        const key = new URL(request.url).searchParams.get('key')
+        if (!this.env.STATS_KEY || key !== this.env.STATS_KEY)
+            return json({ error: 'forbidden' }, request, 403)
         const analytics = await this.state.storage.get('analytics') ?? {}
         return json(analytics, request)
     }
