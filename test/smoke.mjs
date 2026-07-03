@@ -44,10 +44,11 @@ check('sitemap present', asset('sitemap.xml', 100))
 
 // 4. Live backend
 try {
+    // /stats is owner-only: a live worker answers 403 without the key
     const stats = await fetch(`${SERVER}/stats`, { signal: AbortSignal.timeout(10_000) })
-    check('worker /stats responds', stats.ok)
+    check('worker /stats is key-protected', stats.status === 403)
 } catch {
-    check('worker /stats responds', false)
+    check('worker /stats is key-protected', false)
 }
 
 await new Promise((resolve) => {
