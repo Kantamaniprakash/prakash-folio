@@ -19,9 +19,7 @@ const text = `
 ╚═══════════════════════╝
 
 ╔═ Credit where due ════╗
-║ This 3D experience is built on Bruno Simon's open-source folio-2025 (MIT license).
-║ https://github.com/brunosimon/folio-2025
-║ Original design, 3D world and engine by Bruno Simon — customized by Prakash Kantamani.
+║ Built on an MIT-licensed open-source engine — see license.md in the repo.
 ║ Music by Kounine (CC0) ⇒ https://linktr.ee/Kounine
 ╚═══════════════════════╝
 

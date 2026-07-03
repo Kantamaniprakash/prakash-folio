@@ -3,7 +3,7 @@ import math
 import sys
 from mathutils import Vector
 
-BLEND = 'C:/Users/praka/prakash-folio/resources/folio-2025.blend'
+BLEND = 'C:/Users/praka/prakash-folio/resources/prakash-folio.blend'
 # Archivo Black matches the original letters' glyph shapes (0.89 IoU vs 0.84
 # for Pally-Bold, measured against the original meshes) — see _match_font.py
 FONT = 'C:/Users/praka/prakash-folio/resources/ArchivoBlack-Regular.ttf'
