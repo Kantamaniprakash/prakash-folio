@@ -20,7 +20,12 @@ export default {
     {
         outDir: '../dist', // Output in the dist/ folder
         emptyOutDir: true, // Empty the folder first
-        sourcemap: false // Add sourcemap
+        sourcemap: false, // Add sourcemap
+        // Explicit target: without it, vite-plugin-top-level-await falls back to the
+        // old Vite 6 default list (es2020/chrome87/...), which esbuild >= 0.27 (pulled
+        // in by Vite 7.3) can no longer lower destructuring to. es2022 matches Vite 7's
+        // "baseline-widely-available" default browser support.
+        target: 'es2022'
     },
     plugins:
     [
