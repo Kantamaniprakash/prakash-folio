@@ -1,5 +1,39 @@
 export default [
     {
+        title: 'Multi-Agent Trading Lab',
+        titleSmall: [ 'Multi-Agent', 'Trading Lab' ],
+        url: 'https://github.com/kantamaniprakash/trading-agents-lab',
+        attributes:
+        {
+            role: [ 'ML engineer' ],
+            with: [ 'LLM agents', 'Backtesting', 'LightGBM' ]
+        },
+        distinctions: [],
+        images:
+        [
+            'trading-agents-1.ktx',
+            'trading-agents-2.ktx',
+            'trading-agents-3.ktx',
+        ]
+    },
+    {
+        title: 'RAG Chunking Benchmark',
+        titleSmall: [ 'RAG Chunking', 'Benchmark' ],
+        url: 'https://github.com/kantamaniprakash/genai-lab',
+        attributes:
+        {
+            role: [ 'Gen AI engineer' ],
+            with: [ 'RAG', 'Retrieval eval', 'Python' ]
+        },
+        distinctions: [],
+        images:
+        [
+            'genai-lab-1.ktx',
+            'genai-lab-2.ktx',
+            'genai-lab-3.ktx',
+        ]
+    },
+    {
         title: 'Financial RAG Chatbot',
         titleSmall: [ 'Financial', 'RAG Chatbot' ],
         url: 'https://github.com/kantamaniprakash/financial-rag-chatbot',
