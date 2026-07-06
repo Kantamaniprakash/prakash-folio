@@ -4,6 +4,8 @@ dist
 .vercel
 .VSCodeCounter
 .env*
+!.env.example
+!.env.production
 .autosave
 .wav
 !static/sounds/music/*.wav

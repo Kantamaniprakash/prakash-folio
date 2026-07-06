@@ -1,6 +1,8 @@
 # Prakash's — Interactive 3D Portfolio
 
 [![Build, test & deploy](https://github.com/Kantamaniprakash/prakash-folio/actions/workflows/deploy.yml/badge.svg)](https://github.com/Kantamaniprakash/prakash-folio/actions/workflows/deploy.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./license.md)
+[![Node](https://img.shields.io/badge/node-22.x-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 
 ![Driving through the portfolio world](./static/social/demo.gif)
 
@@ -39,7 +41,7 @@ Create a `.env` file based on `.env.example`, install [Node.js](https://nodejs.o
 
 ``` bash
 # Install dependencies
-npm install --force
+npm install
 
 # Serve at localhost:5173
 npm run dev
