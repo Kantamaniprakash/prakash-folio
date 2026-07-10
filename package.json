@@ -31,7 +31,7 @@
     "normalize-wheel": "^1.0.1",
     "seedrandom": "^3.0.5",
     "sharp": "^0.34.5",
-    "stats-gl": "^3.6.0",
+    "stats-gl": "^4.2.3",
     "stylus": "^0.64.0",
     "three": "^0.183.2",
     "tweakpane": "^4.0.4",
