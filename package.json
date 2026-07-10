@@ -22,7 +22,7 @@
     "@tweakpane/plugin-essentials": "^0.2.1",
     "@vitejs/plugin-basic-ssl": "^2.1.0",
     "camera-controls": "^3.1.2",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.4.2",
     "emoji-regex": "^10.4.0",
     "glob": "^13.0.0",
     "gsap": "^3.12.5",
